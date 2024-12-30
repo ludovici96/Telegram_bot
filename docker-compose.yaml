@@ -97,11 +97,7 @@ services:
 volumes:
   mongodb_data:
     name: telegram_mongodb_data
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /var/lib/docker/volumes/telegram_mongodb_data/_data
+    external: true
 
 secrets:
   tg_api_id:
