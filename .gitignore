@@ -1,0 +1,91 @@
+# Environment variables and credentials
+.env
+creds.txt
+todo.txt
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Telegram specific
+*.session
+*.session-journal
+my_bot_session/
+
+# Media and Downloads
+gallery-dl/
+yt-dlp-downloads/
+*.ogg
+*.wav
+*.mp3
+*.mp4
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# Logs and Local Config
+*.log
+config.local.py
+logs/
+
+# MongoDB
+data/db/
+
+# Testing
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Documentation
+docs/_build/
+site/
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# Docker
+secrets/
+Dockerfile.debian
+
+# Old config files (deprecated)
+src/telegrambot/config/settings.py
+src/telegrambot/config/config.py
+
+# Keep only Docker config
+!src/telegrambot/config/docker_settings.py
+!LICENSE
+!README.md

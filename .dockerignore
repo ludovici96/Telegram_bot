@@ -1,0 +1,70 @@
+# Secrets and credentials
+secrets/
+.env
+.env.example
+*.pem
+*.key
+
+# Version control
+.git/
+.gitignore
+packed-refs
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.env/
+*.egg-info/
+logout.py
+setup.py
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and databases
+*.log
+*.sqlite
+data/
+
+# Media and downloads
+gallery-dl/
+yt-dlp/
+downloads/
+*.mp3
+*.mp4
+*.wav
+*.ogg
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yaml
+setup_secrets.sh
+Dockerfile.debian
+
+# Documentation
+README.md
+CHANGELOG.md
+docs/
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+
+# Keep these files
+!requirements/requirements.txt
+!src/
+!run.py
+!entrypoint.sh
