@@ -372,37 +372,26 @@ def register_command_handlers(app: Client, mongodb_service: MongoDBService, stat
     @app.on_message(filters.command("tldr") & filters.chat(ALLOWED_CHAT_ID))
     async def tldr_command(client, message):
         try:
-            # Check if this is a reply to a message
             if message.reply_to_message and message.reply_to_message.text:
                 text_to_summarize = message.reply_to_message.text
             else:
-                # Get the text after the command
                 text_to_summarize = " ".join(message.command[1:])
             
             if not text_to_summarize:
                 await message.reply_text("Please provide text after the /tldr command or reply to a message you want to summarize.")
                 return
 
-            # Send a waiting message
             waiting_message = await message.reply_text("🤔 Summarizing...")
-            
-            # Generate summary using GroqService
             summary = await groq_service.generate_summary([text_to_summarize])
-            
-            # Handle potentially split responses
-            if isinstance(summary, list):
-                for i, part in enumerate(summary, 1):
-                    part_text = f"Part {i}/{len(summary)}:\n\n{part}" if len(summary) > 1 else part
-                    await message.reply_text(part_text)
-            else:
-                await message.reply_text(summary)
-            
-            # Delete the waiting message
             await waiting_message.delete()
             
-            # Send the summary with a TLDR prefix
-            await message.reply_text(f"TL;DR:\n{summary}")
-            
+            if isinstance(summary, list):
+                for i, part in enumerate(summary, 1):
+                    prefix = "TL;DR (Part {i}/{len(summary)}):\n" if len(summary) > 1 else "TL;DR:\n"
+                    await message.reply_text(f"{prefix}{part}")
+            else:
+                await message.reply_text(f"TL;DR:\n{summary}")
+                
         except Exception as e:
             logger.error(f"Error in tldr command: {e}")
             await message.reply_text("An error occurred while generating the summary.")

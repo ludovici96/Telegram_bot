@@ -165,8 +165,13 @@ Prerequisites:
      ```
    - Edit the `.env` file with your credentials (see `.env.example` for all required variables)
 
+3. After populating the `.env` file, run the `logout.py` file :
+   ```bash
+   python3 logout.py
+   ```
+   - You need to logout the telegram bot from the offical telegram bot api so you can you the local one. (local bot api also gives you higher upload limits of files. offcial only allowes 50mb uploads)
 
-3. After populating the `.env` file, run these commands:
+4. After populating the `.env` file, run these commands:
    ```bash
    chmod +x setup_secrets.sh
 
@@ -176,11 +181,9 @@ Prerequisites:
    - Telegram API credentials (API ID, API Hash, Bot Token)
    - Service API keys (Groq, News, Weather, ElevenLabs, etc.)
 
-4. create the docker image, and run it:
+5. create the docker image, and run it:
    - The project includes Docker support for easy deployment with secure credential management using Docker secrets:
-   ```bash
-   # To setup with Docker
-   
+   ```bash   
    docker build -t telegram-bot-api .
 
    docker compose up -d
@@ -213,7 +216,6 @@ The container includes health checks that monitor:
 ##### Security Features
 - No sensitive data in environment variables
 - All credentials managed through Docker secrets
-- Non-root user for bot operation
 - Secure volume permissions
 - Isolated network configuration
 

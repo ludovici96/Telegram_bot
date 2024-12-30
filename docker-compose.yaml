@@ -42,14 +42,17 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.00'
-          memory: 2G
-          pids: 100    # pids_limit
+          cpus: '5.00'
+          memory: 3G
+          pids: 500    # pids_limit
         reservations:
-          cpus: '0.25'
+          cpus: '2'
           memory: 1G
     ulimits:
       nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
         soft: 65536
         hard: 65536
     security_opt:
