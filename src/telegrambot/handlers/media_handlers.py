@@ -36,9 +36,10 @@ def register_media_handlers(app: Client):
                 description = ""
                 
                 # Try video download
-                video_file, video_desc = downloader.download_video(url)
-                if video_file:
-                    media_group.append(InputMediaVideo(video_file))
+                video_files, video_desc = downloader.download_video(url)
+                if isinstance(video_files, list):  # Changed to handle multiple videos
+                    for video_file in video_files:
+                        media_group.append(InputMediaVideo(video_file))
                     description = video_desc
                 elif video_desc and ("live video stream" in video_desc or "too large" in video_desc):
                     await client.send_message(
@@ -103,7 +104,7 @@ def register_media_handlers(app: Client):
                     if content:
                         await client.send_message(
                             chat_id=ALLOWED_CHAT_ID,
-                            text=f"🐥✍️\n{content}",
+                            text=content,  # Remove the f"🐥✍️\n{content}" as emoji is now added in the service
                             reply_to_message_id=message.id
                         )
                         downloader.purge_folder(downloader.DOWNLOAD_FOLDER)

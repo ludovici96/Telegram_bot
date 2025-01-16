@@ -58,21 +58,29 @@ class DownloaderService(BaseService):
         try:
             with open(info_file_path, 'r', encoding='utf-8') as f:
                 info = json.load(f)
-                title = info.get('title', '').strip()
-                description = info.get('description', '').strip()
                 uploader = info.get('uploader', '').strip()
+                description = info.get('description', '').strip()
                 
-                # Check if description is same as title or contains title
-                if description == title or title in description:
-                    full_description = description
+                # Remove URLs from description
+                description = re.sub(r'https?://\S+', '', description)
+                
+                # Handle double spaces as newlines
+                description = re.sub(r'  +', '\n', description)
+                
+                # Remove duplicate content (Twitter often includes the same text twice)
+                if ':' in description:
+                    _, content = description.split(':', 1)
+                    content = content.strip()
                 else:
-                    full_description = f"{title}\n\n{description}"
+                    content = description
 
-                # Add uploader if available and not already in description
-                if uploader and uploader not in full_description:
-                    full_description = f"By: {uploader}\n\n{full_description}"
-
-                return self.sanitize_description(full_description)
+                # Sanitize content to remove hashtags
+                content = self.sanitize_description(content)
+                
+                formatted_description = f"🍿🎬\n{uploader}:\n\n{content}"
+                
+                formatted_description = re.sub(r'\n{3,}', '\n\n', formatted_description)
+                return formatted_description.strip()
         except Exception as e:
             logger.error(f"Error reading video description: {e}")
             return ""
@@ -102,15 +110,13 @@ class DownloaderService(BaseService):
                 logger.debug(f"[DOWNLOAD] Skipping live video: {url}")
                 return None, "This is a live video stream which cannot be downloaded."
 
-            # Download using best format
+            # Download using best format with unique IDs in filenames
             result = subprocess.run(
                 [
                     "yt-dlp",
-                    "-o", f"{self.YT_DLP_FOLDER}/%(title)s.%(ext)s",
+                    "-o", f"{self.YT_DLP_FOLDER}/%(id)s.%(ext)s",
                     "--write-info-json",
-                    "--merge-output-format", "mp4",
                     "--no-playlist",
-                    "-f", "best",
                     url
                 ],
                 capture_output=True,
@@ -122,11 +128,13 @@ class DownloaderService(BaseService):
                              if f.endswith(('.mp4', '.mkv', '.webm'))]
                 
                 if video_files:
-                    video_path = video_files[0]
-                    # Look for corresponding .info.json file
-                    info_file = os.path.splitext(video_path)[0] + '.info.json'
+                    # Get the first video's info for description
+                    first_video = video_files[0]
+                    info_file = os.path.splitext(first_video)[0] + '.info.json'
                     description = self.get_video_description(info_file) if os.path.exists(info_file) else ""
-                    return video_path, description
+                    
+                    # Return all video files and the description
+                    return video_files, description
                     
                 return None, None
             else:
@@ -144,11 +152,9 @@ class DownloaderService(BaseService):
             result = subprocess.run(
                 [
                     "yt-dlp",
-                    "-o", f"{self.YT_DLP_FOLDER}/%(title)s.%(ext)s",
+                    "-o", f"{self.YT_DLP_FOLDER}/%(id)s.%(ext)s",
                     "--write-info-json",
-                    "--merge-output-format", "mp4",
                     "--no-playlist",
-                    "-f", "best",
                     url
                 ],
                 capture_output=True,
@@ -156,13 +162,13 @@ class DownloaderService(BaseService):
             )
 
             if result.returncode == 0:
-                video_files = [f for f in os.listdir(self.YT_DLP_FOLDER) 
+                video_files = [os.path.join(self.YT_DLP_FOLDER, f) for f in os.listdir(self.YT_DLP_FOLDER) 
                              if f.endswith(('.mp4', '.mkv', '.webm'))]
                 if video_files:
-                    video_path = os.path.join(self.YT_DLP_FOLDER, video_files[0])
-                    info_file = os.path.splitext(video_path)[0] + '.info.json'
+                    first_video = video_files[0]
+                    info_file = os.path.splitext(first_video)[0] + '.info.json'
                     description = self.get_video_description(info_file) if os.path.exists(info_file) else ""
-                    return video_path, description
+                    return video_files, description
             
             return None, "Could not download video."
             
@@ -201,7 +207,8 @@ class DownloaderService(BaseService):
                         author_nick = author.get('nick', '') or author.get('name', '')
                         content = metadata.get('content', '')
                         content = self.sanitize_description(content)
-                        description = f"{author_nick}:\n\n{content}" if author_nick else content
+                        # Add emoji and double line break
+                        description = f"🐥🐣\n{author_nick}:\n\n{content}" if author_nick else f"🐥🐣\n{content}"
                         
                         # Try to get original order from metadata
                         if isinstance(metadata, dict) and 'posts' in metadata:
@@ -261,7 +268,15 @@ class DownloaderService(BaseService):
             if text_files:
                 with open(text_files[0], 'r', encoding='utf-8') as text_file:
                     content = text_file.read()
+                    # Replace multiple newlines with a single newline
+                    content = re.sub(r'\n+', '\n', content)
                     content = self.sanitize_description(content)
+                    # Ensure proper line break between username and content
+                    if ':' in content:
+                        username, text = content.split(':', 1)
+                        content = f"🐥✍️\n{username}:\n\n{text.strip()}"
+                    else:
+                        content = f"🐥✍️\n{content}"
             
             return content
         return ""
