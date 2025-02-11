@@ -1,0 +1,141 @@
+services:
+  telegram-bot:
+    image: telegram-bot-api
+    container_name: telegram
+    volumes:
+      - mongodb_data:/data/db
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          mode: 1777
+    environment:
+      - MONGODB_URI=mongodb://127.0.0.1:27017/
+      - DOWNLOAD_FOLDER=/app/gallery-dl
+      - YT_DLP_FOLDER=/app/yt-dlp
+      - SUPPORTED_SITES_FILE=src/telegrambot/config/supportedsites.md
+      - GALLERY_DL_CONFIG=src/telegrambot/config/gallery-dl.conf
+      - TEXT_CONFIG=src/telegrambot/config/textconfig.conf
+      - TG_SERVER=http://localhost
+      - TG_PORT=8081
+      - MONGODB_DB=telegram_bot
+      - WHISPER_MODEL=base
+      - WHISPER_LANGUAGE=en
+    secrets:
+      - tg_api_id
+      - tg_api_hash
+      - tg_bot_token
+      - groq_api_key
+      - news_api_key
+      - fxrates_api_key
+      - openweather_api_key
+      - elevenlabs_api_key
+      - allowed_chat_id
+      - admin_user_ids
+      - coinmarketcap_key
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '5.00'
+          memory: 3G
+          pids: 500    # pids_limit
+        reservations:
+          cpus: '2'
+          memory: 1G
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      nproc:
+        soft: 65536
+        hard: 65536
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=unconfined  # Needed for MongoDB to work properly
+    #  - apparmor=docker-telegram-bot
+      - label:type:docker_telegram_t
+      - label:level:s0:c1,c2
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE  # Needed for MongoDB to work with data directory
+    networks:
+      telegram_net:
+        priority: 1
+        aliases:
+          - telegram-bot
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"    # Maximum size of each log file
+        max-file: "3"      # Maximum number of log files to keep
+        compress: "true"   # Compress rotated logs
+    sysctls:
+      # Network stack hardening (macOS compatible parameters)
+      net.ipv4.ip_unprivileged_port_start: 0
+      net.ipv4.tcp_syncookies: 1
+      net.ipv4.tcp_max_syn_backlog: 2048
+      net.ipv4.tcp_synack_retries: 2
+      net.ipv4.tcp_syn_retries: 2
+      net.core.somaxconn: 1024
+      net.ipv4.ip_local_port_range: "1024 65535"
+      # Basic rate limiting (macOS compatible)
+      net.ipv4.tcp_fin_timeout: 15
+      net.ipv4.tcp_keepalive_time: 600
+      net.ipv4.tcp_keepalive_intvl: 10
+      net.ipv4.tcp_keepalive_probes: 9
+
+volumes:
+  mongodb_data:
+    name: telegram_mongodb_data
+    external: true
+
+secrets:
+  tg_api_id:
+    file: ./secrets/tg_api_id.txt
+  tg_api_hash:
+    file: ./secrets/tg_api_hash.txt
+  tg_bot_token:
+    file: ./secrets/tg_bot_token.txt
+  groq_api_key:
+    file: ./secrets/groq_api_key.txt
+  news_api_key:
+    file: ./secrets/news_api_key.txt
+  fxrates_api_key:
+    file: ./secrets/fxrates_api_key.txt
+  openweather_api_key:
+    file: ./secrets/openweather_api_key.txt
+  elevenlabs_api_key:
+    file: ./secrets/elevenlabs_api_key.txt
+  allowed_chat_id:
+    file: ./secrets/allowed_chat_id.txt
+  admin_user_ids:
+    file: ./secrets/admin_user_ids.txt
+  coinmarketcap_key:
+    file: ./secrets/coinmarketcap_key.txt
+
+networks:
+  telegram_net:
+    driver: bridge
+    internal: false
+    enable_ipv6: false
+    driver_opts:
+      com.docker.network.bridge.name: telegram_net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          ip_range: 172.28.5.0/24
+          gateway: 172.28.5.254
