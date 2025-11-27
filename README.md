@@ -3,12 +3,12 @@
 A rich Telegram bot using modern AI services and Python practices to enhance group chat experiences. This bot combines multiple AI capabilities, media processing, and information services into a modular architecture.
 
 ## Key Highlights
-- 🤖 Advanced AI Integration with Groq, Whisper, and ElevenLabs
-- 📊 Analytics and User Statistics
-- 🔒 Security-First Approach with Docker Secrets
-- 📱 Rich Media Processing and Downloads
-- 🌐 Multiple Information Service Integrations
-- 📦 Modular Architecture with Clean Code Practices
+- AI Integration with Groq, Whisper, and ElevenLabs
+- Analytics and User Statistics
+- Security-First Approach with Docker Secrets
+- Rich Media Processing and Downloads
+- Multiple Information Service Integrations
+- Modular Architecture with Clean Code Practices
 
 Built with scalability and maintainability in mind, this bot features:
 - Secure credential management using Docker secrets
